@@ -2,7 +2,7 @@
 % Measure the block and destination tool-tip positions in the scene first.
 % Set these values before enabling executeMotion. All distances are metres.
 simApiPath = 'G:\pub\Courses\CEG4158\Matlab';
-coppeliaPath = 'COPPELIASIM_PATH';  % Replace with installed CoppeliaSim path.
+coppeliaPath = 'C:\ProgramData\Microsoft\AppV\Client\Integration\6BF10E29-DF4B-4E33-AEDF-FB25B6B1B588\Root\VFS\ProgramFilesX64\CoppeliaRobotics\CoppeliaSimEdu';  % Replace with installed CoppeliaSim path.
 executeMotion = false;           % Set true after checking targets and poses.
 pickWorld = [NaN, NaN, NaN];      % Desired tool-tip position at grasp.
 placeWorld = [NaN, NaN, NaN];     % Desired tool-tip position at release.
