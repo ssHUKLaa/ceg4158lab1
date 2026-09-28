@@ -1,0 +1,9 @@
+function T = dhTransform(alpha, a, d, theta)
+%DHTRANSFORM Classical Denavit-Hartenberg homogeneous transform.
+ca = cos(alpha); sa = sin(alpha);
+ct = cos(theta); st = sin(theta);
+T = [ct, -st*ca,  st*sa, a*ct; ...
+     st,  ct*ca, -ct*sa, a*st; ...
+      0,     sa,     ca,    d; ...
+      0,      0,      0,    1];
+end
