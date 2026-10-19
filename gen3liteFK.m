@@ -1,5 +1,8 @@
 function [T, frames] = gen3liteFK(q)
-%GEN3LITEFK Tool pose in the DH base frame, with q in radians.
+%GEN3LITEFK Candidate DH tool pose in the DH base frame, q in radians.
+% This uses the candidate classical-DH parameters documented in
+% Lab2_FK_Preparation.md. Validate the base/tool frame choice against the
+% Gen3Lite fk scene and j.EndEffectorPose before treating it as final.
 % frames(:,:,i) is T0i; frames(:,:,1) is the base frame.
 validateattributes(q, {'numeric'}, {'real','finite','vector','numel',6});
 q = double(q(:));
