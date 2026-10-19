@@ -1,10 +1,32 @@
 % Lab 2: compare candidate DH forward kinematics with CoppeliaSim.
-% Uses the exact scene-loading form given in the Lab 2 guide.
+% By default, use a Gen3Lite fk scene opened manually in CoppeliaSim.
 clear;
 simApiPath = 'G:\pub\Courses\CEG4158\Matlab';
 coppeliaPath = ['C:\ProgramData\Microsoft\AppV\Client\Integration\' ...
     '6BF10E29-DF4B-4E33-AEDF-FB25B6B1B588\Root\VFS\ProgramFilesX64\' ...
     'CoppeliaRobotics\CoppeliaSimEdu'];
+loadSceneFromMatlab = false; % Set true to use the guide's v.loadscene call.
+clearSceneAtEnd = false;     % Keep the scene visible after the comparison.
+if ~isfolder(simApiPath)
+    error('Lab2FK:SimAPIPath', ...
+        'simAPI folder not found: %s. Set simApiPath to the folder containing GEN3LITE.m.', ...
+        simApiPath);
+end
+if loadSceneFromMatlab
+    sceneFile = fullfile(simApiPath, 'scenes', 'Gen3Lite fk.ttt');
+    if ~isfile(sceneFile)
+        error('Lab2FK:ScenePath', ...
+            'Lab scene not found: %s. Check that simApiPath points to the simAPI root.', ...
+            sceneFile);
+    end
+end
+if ~isfolder(coppeliaPath)
+    error('Lab2FK:CoppeliaPath', ...
+        'CoppeliaSim folder not found: %s. Set coppeliaPath to your installation folder.', ...
+        coppeliaPath);
+end
+addpath(fileparts(mfilename('fullpath')));
+addpath(genpath(simApiPath));
 settleSeconds = 2;
 
 % Lab-guide reference configurations, in degrees. These are within the
@@ -18,15 +40,40 @@ qTestDeg = [0,0,0,0,0,0; ...
             -3,21,150,-88,-40,-87; ...
            -90,148,148,-90,140,0];
 
-addpath(genpath(simApiPath));
+% Show the six substituted DH matrices for the all-zero commanded pose.
+[Tzero, ~, Azero] = gen3liteFK(zeros(1,6));
+fprintf('Candidate A_i matrices at q = [0 0 0 0 0 0]:\n');
+for i = 1:6
+    fprintf('A%d =\n', i);
+    disp(Azero(:,:,i));
+end
+fprintf('Candidate T06 at zero pose:\n');
+disp(Tzero);
+
 v = [];
 j = [];
 try
+    fprintf('Connecting to CoppeliaSim at %s ...\n', coppeliaPath);
+    drawnow;
     v = VREP('path', coppeliaPath);
-    v.loadscene('Gen3Lite fk', 'local', true);
+    if loadSceneFromMatlab
+        fprintf('Loading Gen3Lite fk scene from simAPI ...\n');
+        drawnow;
+        v.loadscene('Gen3Lite fk', 'local', true);
+    else
+        fprintf(['Using the currently open scene. Confirm it is Gen3Lite fk ' ...
+            'and that simulation is stopped.\n']);
+        drawnow;
+    end
+    fprintf('Starting simulation ...\n');
+    drawnow;
     v.simstart();
+    fprintf('Connecting to the Gen3Lite model ...\n');
+    drawnow;
     j = GEN3LITE(v, 'Gen3Lite');
     j.connect();
+    fprintf('Running DH pose comparisons.\n');
+    drawnow;
 
     positionError = zeros(size(qTestDeg,1),1);
     rotationErrorDeg = zeros(size(qTestDeg,1),1);
@@ -60,18 +107,20 @@ try
     fprintf('\nSummary (errors should approach zero after DH frames/offsets match):\n');
     disp(summary);
 catch ME
-    cleanupLab2(j, v);
+    cleanupLab2(j, v, clearSceneAtEnd);
     rethrow(ME);
 end
-cleanupLab2(j, v);
+cleanupLab2(j, v, clearSceneAtEnd);
 
-function cleanupLab2(j, v)
+function cleanupLab2(j, v, clearSceneAtEnd)
 if ~isempty(j)
     try, j.disconnect(); catch, end
 end
 if ~isempty(v)
     try, v.simstop(); catch, end
-    try, v.clearscene(); catch, end
+    if clearSceneAtEnd
+        try, v.clearscene(); catch, end
+    end
     try, v.delete(); catch, end
 end
 end
