@@ -40,15 +40,22 @@ qTestDeg = [0,0,0,0,0,0; ...
             -3,21,150,-88,-40,-87; ...
            -90,148,148,-90,140,0];
 
-% Show the six substituted DH matrices for the all-zero commanded pose.
-[Tzero, ~, Azero] = gen3liteFK(zeros(1,6));
+% Show the six substituted DH matrices and fixed tool-frame transform.
+[TzeroTool, framesZero] = gen3liteFK(zeros(1,6));
+Azero = zeros(4,4,6);
+for i = 1:6
+    % frames(:,:,i) is T0,i-1 and frames(:,:,i+1) is T0,i.
+    Azero(:,:,i) = framesZero(:,:,i) \ framesZero(:,:,i+1);
+end
 fprintf('Candidate A_i matrices at q = [0 0 0 0 0 0]:\n');
 for i = 1:6
     fprintf('A%d =\n', i);
     disp(Azero(:,:,i));
 end
-fprintf('Candidate T06 at zero pose:\n');
-disp(Tzero);
+fprintf('DH chain T06 at zero pose:\n');
+disp(framesZero(:,:,7));
+fprintf('Base-to-tool transform T06*T6tool at zero pose:\n');
+disp(TzeroTool);
 
 v = [];
 j = [];

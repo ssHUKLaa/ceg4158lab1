@@ -1,9 +1,8 @@
 function [T, frames, A] = gen3liteFK(q)
-%GEN3LITEFK Candidate DH tool pose in the DH base frame, q in radians.
-% This uses the candidate classical-DH parameters documented in
-% Lab2_FK_Preparation.md. Validate the base/tool frame choice against the
-% Gen3Lite fk scene and j.EndEffectorPose before treating it as final.
-% frames(:,:,i) is T0i; frames(:,:,1) is the base frame.
+%GEN3LITEFK Candidate base-to-tool pose from classical DH, q in radians.
+% The six A matrices produce T06. A fixed T6tool rotation maps the terminal
+% DH frame to the simulator tool frame, inferred from the supplied pose data.
+% frames(:,:,i) contains cumulative DH transforms T0i, before T6tool.
 validateattributes(q, {'numeric'}, {'real','finite','vector','numel',6});
 q = double(q(:));
 alpha = [pi/2; pi; pi/2; pi/2; pi/2; 0];
@@ -17,5 +16,7 @@ for k = 1:6
     A(:,:,k) = dhTransform(alpha(k), a(k), d(k), q(k)+offset(k));
     frames(:,:,k+1) = frames(:,:,k) * A(:,:,k);
 end
-T = frames(:,:,7);
+T06 = frames(:,:,7);
+T6tool = dhTransform(0, 0, 0, pi/2);
+T = T06 * T6tool;
 end

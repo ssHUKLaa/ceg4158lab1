@@ -71,10 +71,10 @@ A6 = [ c6 -s6   0   0     ]
      [  0   0   1   0.235 ]
      [  0   0   0   1     ]
 
-T_base_tool = A1*A2*A3*A4*A5*A6
+T06 = A1*A2*A3*A4*A5*A6
 ```
 
-`gen3liteFK.m` computes this product and also returns the intermediate transforms. It is a candidate implementation, not a simulator-validated final model.
+The six-row manufacturer table produces `T06`. Comparing the supplied simulator results across six joint configurations showed a consistent residual `R06' * Rsim ≈ Rz(pi/2)`, while position errors were about 1-10 mm. The FK function now appends a fixed, zero-translation `T6tool = Rz(pi/2)` to compare with the simulator's tool frame: `T_base_tool = T06*T6tool`. This is an experimentally inferred frame alignment; verify it with the Lab 2 simulator and the guide's base/tool diagrams. `gen3liteFK.m` computes the DH chain, appends this tool-frame rotation, and returns the intermediate DH transforms and individual A matrices.
 
 ## Simulator pose conversion
 
